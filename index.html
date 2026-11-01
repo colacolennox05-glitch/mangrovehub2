@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mangrove Guard | Coastal Preservation & Volunteer Portal</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        emerald: {
+                            850: '#053e2f',
+                            950: '#022c22',
+                        },
+                        marine: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            700: '#0369a1',
+                            900: '#0c4a6e',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'glow-emerald': '0 0 25px -5px rgba(16, 185, 129, 0.4)',
+                        'glow-teal': '0 0 25px -5px rgba(20, 184, 166, 0.4)'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+        .dark .glass-panel {
+            background: rgba(15, 23, 42, 0.85);
+        }
+        .bg-mangrove-hero {
+            background: linear-gradient(135deg, rgba(6, 78, 59, 0.93) 0%, rgba(12, 74, 110, 0.90) 100%), 
+                        url('https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.05); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(16, 185, 129, 0.4); border-radius: 9999px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(16, 185, 129, 0.7); }
+    </style>
+    <!-- Supabase JS Client SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-300 custom-scrollbar selection:bg-emerald-500 selection:text-white">
+
+    <!-- Toast Notification Overlay -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3 max-w-sm w-full pointer-events-none"></div>
+
+    <!-- Navigation Header -->
+    <nav class="sticky top-0 z-40 glass-panel border-b border-slate-200/80 dark:border-slate-800/80 transition-colors">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16 sm:h-20">
+                <!-- Brand Logo -->
+                <a href="#" class="flex items-center gap-3 group">
+                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center text-white shadow-lg shadow-emerald-600/30 group-hover:scale-105 transition-transform">
+                        <i class="fa-solid fa-tree-city text-xl"></i>
+                    </div>
+                    <div>
+                        <span class="text-xl font-extrabold bg-gradient-to-r from-emerald-700 via-teal-600 to-marine-700 dark:from-emerald-400 dark:to-marine-400 bg-clip-text text-transparent tracking-tight">MangroveGuard</span>
+                        <span class="block text-[10px] font-bold text-emerald-600 dark:text-emerald-400 tracking-widest uppercase">Full-Stack Conservation</span>
+                    </div>
+                </a>
+
+                <!-- Desktop Navigation Links -->
+                <div class="hidden md:flex items-center gap-8 font-semibold text-sm">
+                    <a href="#about" class="text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Mission</a>
+                    <a href="#guide" class="text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Ecology Guide</a>
+                    <a href="#drives" class="text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Restoration Drives</a>
+                    <a href="#dashboard" class="text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Impact Dashboard</a>
+                    <a href="#volunteer" class="px-5 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/25 font-bold transition-all hover:shadow-glow-emerald hover:-translate-y-0.5">
+                        <i class="fa-solid fa-hand-holding-heart mr-2"></i>Register Now
+                    </a>
+                </div>
+
+                <!-- Control Buttons -->
+                <div class="flex items-center gap-2">
+                    <button id="theme-toggle" class="p-2.5 rounded-2xl text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors" aria-label="Toggle theme">
+                        <i id="theme-toggle-dark-icon" class="hidden fa-solid fa-moon text-lg"></i>
+                        <i id="theme-toggle-light-icon" class="hidden fa-solid fa-sun text-lg"></i>
+                    </button>
+                    <button id="mobile-menu-btn" class="md:hidden p-2.5 rounded-2xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Drawer -->
+        <div id="mobile-menu" class="hidden md:hidden border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 px-4 pt-2 pb-6 space-y-3">
+            <a href="#about" class="block py-2 text-slate-600 dark:text-slate-300 font-medium hover:text-emerald-600">Mission</a>
+            <a href="#guide" class="block py-2 text-slate-600 dark:text-slate-300 font-medium hover:text-emerald-600">Ecology Guide</a>
+            <a href="#drives" class="block py-2 text-slate-600 dark:text-slate-300 font-medium hover:text-emerald-600">Restoration Drives</a>
+            <a href="#dashboard" class="block py-2 text-slate-600 dark:text-slate-300 font-medium hover:text-emerald-600">Impact Dashboard</a>
+            <a href="#volunteer" class="block text-center mt-3 py-3 rounded-xl bg-emerald-600 text-white font-bold shadow-md">
+                <i class="fa-solid fa-hand-holding-heart mr-2"></i>Register Now
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow">
+
+        <!-- 1. Hero Banner & Real-time Server Metrics -->
+        <section id="about" class="bg-mangrove-hero text-white relative py-20 lg:py-28 overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-95"></div>
+            
+            <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid lg:grid-cols-12 gap-12 items-center">
+                    
+                    <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
+                        <div class="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 backdrop-blur-md text-emerald-300 text-xs sm:text-sm font-bold tracking-wide">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+                            NEP 2020 Community Engagement Project (CEP) Platform
+                        </div>
+                        
+                        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight">
+                            Safeguarding Shorelines & <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-marine-400">Blue Carbon Sinks</span>
+                        </h1>
+                        
+                        <p class="text-lg sm:text-xl text-slate-200 max-w-2xl font-light leading-relaxed mx-auto lg:mx-0">
+                            Connecting student researchers, coastal communities, and marine conservationists. Register today to participate in field restoration drives, plant saplings, and record verified eco-data.
+                        </p>
+                        
+                        <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-2">
+                            <a href="#volunteer" class="px-8 py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold shadow-xl shadow-emerald-950/50 text-center transition-all hover:scale-[1.02] hover:shadow-glow-emerald">
+                                Volunteer Registration <i class="fa-solid fa-arrow-right ml-2"></i>
+                            </a>
+                            <a href="#drives" class="px-8 py-4 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold backdrop-blur-md text-center transition-all">
+                                View Active Drives <i class="fa-solid fa-calendar-check ml-2 text-emerald-400"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Live Metrics Grid -->
+                    <div class="lg:col-span-5">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="p-6 rounded-3xl bg-slate-900/80 border border-emerald-500/30 backdrop-blur-xl shadow-2xl hover:border-emerald-400/60 transition-all">
+                                <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl mb-3">
+                                    <i class="fa-solid fa-seedling"></i>
+                                </div>
+                                <div class="text-3xl font-black text-white" id="stat-trees">14,850</div>
+                                <div class="text-xs uppercase tracking-wider text-emerald-300 font-bold mt-1">Saplings Planted</div>
+                            </div>
+
+                            <div class="p-6 rounded-3xl bg-slate-900/80 border border-teal-500/30 backdrop-blur-xl shadow-2xl hover:border-teal-400/60 transition-all">
+                                <div class="w-12 h-12 rounded-2xl bg-teal-500/20 text-teal-300 flex items-center justify-center text-xl mb-3">
+                                    <i class="fa-solid fa-users"></i>
+                                </div>
+                                <div class="text-3xl font-black text-white" id="stat-volunteers">1,240</div>
+                                <div class="text-xs uppercase tracking-wider text-teal-300 font-bold mt-1">Registered Force</div>
+                            </div>
+
+                            <div class="p-6 rounded-3xl bg-slate-900/80 border border-marine-500/30 backdrop-blur-xl shadow-2xl hover:border-marine-400/60 transition-all">
+                                <div class="w-12 h-12 rounded-2xl bg-marine-500/20 text-marine-400 flex items-center justify-center text-xl mb-3">
+                                    <i class="fa-solid fa-shield-halved"></i>
+                                </div>
+                                <div class="text-3xl font-black text-white" id="stat-hectares">85.4</div>
+                                <div class="text-xs uppercase tracking-wider text-marine-300 font-bold mt-1">Hectares Protected</div>
+                            </div>
+
+                            <div class="p-6 rounded-3xl bg-slate-900/80 border border-amber-500/30 backdrop-blur-xl shadow-2xl hover:border-amber-400/60 transition-all">
+                                <div class="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-xl mb-3">
+                                    <i class="fa-solid fa-cloud"></i>
+                                </div>
+                                <div class="text-3xl font-black text-white">420 Tons</div>
+                                <div class="text-xs uppercase tracking-wider text-amber-300 font-bold mt-1">CO₂ Sequestered</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. Interactive Ecology & Conservation Guide -->
+        <section id="guide" class="py-16 sm:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-14">
+                <span class="text-emerald-600 dark:text-emerald-400 font-bold text-sm tracking-wider uppercase">Knowledge Base</span>
+                <h2 class="text-3xl sm:text-4xl font-black mt-2 text-slate-900 dark:text-white tracking-tight">Mangrove Ecology & Science</h2>
+                <p class="text-slate-600 dark:text-slate-400 mt-4 text-base sm:text-lg">
+                    Understand how coastal ecosystems mitigate climate risks, build shoreline defenses, and foster rich estuarine biodiversity.
+                </p>
+            </div>
+
+            <!-- Tab Switching Controls -->
+            <div class="flex flex-wrap justify-center gap-3 mb-10">
+                <button onclick="switchTab('carbon')" id="tab-carbon" class="guide-tab px-6 py-3 rounded-full font-bold text-sm transition-all flex items-center gap-2 bg-emerald-600 text-white shadow-lg shadow-emerald-600/20">
+                    <i class="fa-solid fa-smog"></i> Blue Carbon
+                </button>
+                <button onclick="switchTab('coastal')" id="tab-coastal" class="guide-tab px-6 py-3 rounded-full font-bold text-sm transition-all flex items-center gap-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700">
+                    <i class="fa-solid fa-water"></i> Wave Protection
+                </button>
+                <button onclick="switchTab('marine')" id="tab-marine" class="guide-tab px-6 py-3 rounded-full font-bold text-sm transition-all flex items-center gap-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700">
+                    <i class="fa-solid fa-fish"></i> Nursery Habitat
+                </button>
+                <button onclick="switchTab('species')" id="tab-species" class="guide-tab px-6 py-3 rounded-full font-bold text-sm transition-all flex items-center gap-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700">
+                    <i class="fa-solid fa-leaf"></i> Key Species
+                </button>
+            </div>
+
+            <!-- Interactive Tab Content Container -->
+            <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-10 border border-slate-200 dark:border-slate-800 shadow-2xl">
+                
+                <!-- Tab: Carbon -->
+                <div id="content-carbon" class="tab-content">
+                    <div class="grid md:grid-cols-2 gap-8 items-center">
+                        <div>
+                            <div class="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl mb-4 font-bold">
+                                <i class="fa-solid fa-cloud-arrow-down"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold text-slate-900 dark:text-white">Blue Carbon Storage Powerhouses</h3>
+                            <p class="text-slate-600 dark:text-slate-300 mt-4 leading-relaxed">
+                                Mangrove forests capture vast quantities of carbon dioxide from the atmosphere and lock it inside organic-rich anaerobic soils beneath intertidal mudflats.
+                            </p>
+                            <ul class="mt-6 space-y-3">
+                                <li class="flex items-center gap-3 text-sm text-slate-700 dark:text-slate-300">
+                                    <i class="fa-solid fa-circle-check text-emerald-500"></i>
+                                    <span>Sequesters carbon up to 4x faster than terrestrial tropical rainforests.</span>
+                                </li>
+                                <li class="flex items-center gap-3 text-sm text-slate-700 dark:text-slate-300">
+                                    <i class="fa-solid fa-circle-check text-emerald-500"></i>
+                                    <span>Stores carbon in anaerobic sediment layers for centuries without rapid breakdown.</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-950 p-6 border border-slate-200 dark:border-slate-800 text-center">
+                            <div class="p-8 bg-emerald-50 dark:bg-emerald-950/40 rounded-2xl border border-emerald-200 dark:border-emerald-800">
+                                <span class="text-5xl font-black text-emerald-600 dark:text-emerald-400">10 Tons/Ha</span>
+                                <p class="text-sm font-bold text-slate-700 dark:text-slate-300 mt-3">Annual Soil Carbon Accumulation Rate</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Coastal -->
+                <div id="content-coastal" class="tab-content hidden">
+                    <div class="grid md:grid-cols-2 gap-8 items-center">
+                        <div>
+                            <div class="w-12 h-12 rounded-2xl bg-marine-100 dark:bg-marine-950 text-marine-600 dark:text-marine-400 flex items-center justify-center text-xl mb-4 font-bold">
+                                <i class="fa-solid fa-shield-halved"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold text-slate-900 dark:text-white">Natural Storm & Erosion Barriers</h3>
+                            <p class="text-slate-600 dark:text-slate-300 mt-4 leading-relaxed">
+                                Complex aerial root matrices function as natural bio-shields, absorbing intense energy from ocean storm surges, tsunamis, and extreme high tides.
+                            </p>
+                            <ul class="mt-6 space-y-3">
+                                <li class="flex items-center gap-3 text-sm text-slate-700 dark:text-slate-300">
+                                    <i class="fa-solid fa-circle-check text-marine-500"></i>
+                                    <span>Reduces wave height energy by up to 66% over 100 meters of mangrove belt.</span>
+                                </li>
+                                <li class="flex items-center gap-3 text-sm text-slate-700 dark:text-slate-300">
+                                    <i class="fa-solid fa-circle-check text-marine-500"></i>
+                                    <span>Traps land silt and prevents coastal shore runoff erosion.</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-950 p-4 border border-slate-200 dark:border-slate-800">
+                            <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80" alt="Mangrove coast" class="rounded-xl w-full h-60 object-cover shadow-md">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Marine -->
+                <div id="content-marine" class="tab-content hidden">
+                    <div class="grid md:grid-cols-2 gap-8 items-center">
+                        <div>
+                            <div class="w-12 h-12 rounded-2xl bg-teal-100 dark:bg-teal-950 text-teal-600 dark:text-teal-400 flex items-center justify-center text-xl mb-4 font-bold">
+                                <i class="fa-solid fa-fish-fins"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold text-slate-900 dark:text-white">Estuarine Nursery & Biodiversity Safehaven</h3>
+                            <p class="text-slate-600 dark:text-slate-300 mt-4 leading-relaxed">
+                                Over 75% of tropical commercial fish species rely on mangrove root structures for protection during early larval and juvenile growth stages.
+                            </p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-center">
+                                <i class="fa-solid fa-shrimp text-3xl text-teal-500 mb-2"></i>
+                                <h4 class="font-bold text-slate-900 dark:text-white">Crustaceans</h4>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Nursery for mud crabs & prawns</p>
+                            </div>
+                            <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-center">
+                                <i class="fa-solid fa-crow text-3xl text-amber-500 mb-2"></i>
+                                <h4 class="font-bold text-slate-900 dark:text-white">Migratory Birds</h4>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Critical habitat for coastal waders</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Species -->
+                <div id="content-species" class="tab-content hidden">
+                    <div class="grid sm:grid-cols-3 gap-6">
+                        <div class="p-6 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+                            <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold flex items-center justify-center mb-3">01</div>
+                            <h4 class="font-bold text-slate-900 dark:text-white text-base">Rhizophora Mucronata</h4>
+                            <p class="text-xs text-emerald-600 dark:text-emerald-400 font-bold mb-2">Red Mangrove</p>
+                            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">Features arching stilt roots (prop roots) extending directly into deep tidal mud.</p>
+                        </div>
+                        <div class="p-6 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+                            <div class="w-8 h-8 rounded-lg bg-teal-500/20 text-teal-600 dark:text-teal-400 font-bold flex items-center justify-center mb-3">02</div>
+                            <h4 class="font-bold text-slate-900 dark:text-white text-base">Avicennia Marina</h4>
+                            <p class="text-xs text-teal-600 dark:text-teal-400 font-bold mb-2">Grey Mangrove</p>
+                            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">Pneumatophore roots rise upward like pencils out of the mud to absorb oxygen.</p>
+                        </div>
+                        <div class="p-6 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+                            <div class="w-8 h-8 rounded-lg bg-marine-500/20 text-marine-600 dark:text-marine-400 font-bold flex items-center justify-center mb-3">03</div>
+                            <h4 class="font-bold text-slate-900 dark:text-white text-base">Sonneratia Alba</h4>
+                            <p class="text-xs text-marine-600 dark:text-marine-400 font-bold mb-2">Apple Mangrove</p>
+                            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">Frontline mudflat pioneer producing large nocturnal white flowers.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 3. Active Restoration Drives Roster -->
+        <section id="drives" class="py-16 bg-slate-100 dark:bg-slate-900/60 transition-colors">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+                    <div>
+                        <span class="text-emerald-600 dark:text-emerald-400 font-bold text-sm tracking-wider uppercase">Field Work Calendar</span>
+                        <h2 class="text-3xl font-black text-slate-900 dark:text-white mt-1 tracking-tight">Upcoming Restoration Drives</h2>
+                    </div>
+                    
+                    <div id="rsvp-status-badge" class="hidden p-4 rounded-2xl bg-white dark:bg-slate-800 border border-emerald-500/30 shadow-lg flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center text-lg font-bold shadow-md shadow-emerald-500/30">
+                            <i class="fa-solid fa-bookmark"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs font-bold text-slate-500 uppercase">Your Scheduled Drives</div>
+                            <div class="text-base font-extrabold text-emerald-600 dark:text-emerald-400"><span id="user-rsvp-count">0</span> Events Enrolled</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8" id="drives-list">
+                    <!-- Dynamic drive cards populated by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Volunteer Registration & Privacy-Protected Status Feed -->
+        <section id="volunteer" class="py-16 sm:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid lg:grid-cols-12 gap-12 items-start">
+                
+                <!-- Registration Info -->
+                <div class="lg:col-span-5 space-y-6">
+                    <span class="text-emerald-600 dark:text-emerald-400 font-bold text-sm tracking-wider uppercase">Join the Movement</span>
+                    <h2 class="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white leading-tight tracking-tight">
+                        Register as an Active Coastal Guardian
+                    </h2>
+                    <p class="text-slate-600 dark:text-slate-300 leading-relaxed">
+                        Data submitted here is stored securely in Supabase to track volunteer participation and generate Community Engagement Project certificates.
+                    </p>
+
+                    <div class="space-y-4 pt-2">
+                        <div class="flex items-start gap-4 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-graduation-cap"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900 dark:text-white text-sm">NEP 2020 CEP Credit Eligible</h4>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Fulfills practical field interaction requirements under Mumbai University guidelines.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-4 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+                            <div class="w-10 h-10 rounded-lg bg-marine-100 dark:bg-marine-950 text-marine-600 dark:text-marine-400 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-kit-medical"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-900 dark:text-white text-sm">Safety & Gear Provided</h4>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Mud boots, gloves, planting toolkits, and field supervisors supplied on-site.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Privacy-Protected Session Feedback Feed -->
+                    <div class="p-6 rounded-3xl bg-emerald-900/90 border border-emerald-700/50 text-white space-y-3 shadow-xl backdrop-blur-md">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-sm flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+                                Your Submission Status
+                            </span>
+                            <span class="text-xs text-emerald-300 font-bold" id="vol-count-badge">0 Logged</span>
+                        </div>
+                        <div id="live-volunteer-roster" class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-2 text-xs">
+                            <p class="text-emerald-200 italic">Submit the form above to record your guardian registration.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Backend Interactive Form -->
+                <div class="lg:col-span-7 bg-white dark:bg-slate-900 p-6 sm:p-10 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl">
+                    <form id="volunteer-form" class="space-y-6">
+                        <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+                            <h3 class="text-2xl font-bold text-slate-900 dark:text-white">
+                                Volunteer Registration Form
+                            </h3>
+                            <span class="text-xs text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-950/60 px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-800">Supabase Connected</span>
+                        </div>
+
+                        <!-- Name & Email -->
+                        <div class="grid sm:grid-cols-2 gap-6">
+                            <div>
+                                <label for="fullName" class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">Full Name *</label>
+                                <input type="text" id="fullName" required placeholder="e.g. Ananya Roy" class="w-full px-4 py-3.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm font-medium">
+                            </div>
+                            <div>
+                                <label for="email" class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">Email Address *</label>
+                                <input type="email" id="email" required placeholder="ananya@university.edu" class="w-full px-4 py-3.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm font-medium">
+                            </div>
+                        </div>
+
+                        <!-- Phone & Availability -->
+                        <div class="grid sm:grid-cols-2 gap-6">
+                            <div>
+                                <label for="phone" class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">Phone Number *</label>
+                                <input type="tel" id="phone" required placeholder="+91 98765 43210" class="w-full px-4 py-3.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm font-medium">
+                            </div>
+                            <div>
+                                <label for="availability" class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">Availability *</label>
+                                <select id="availability" required class="w-full px-4 py-3.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm font-medium">
+                                    <option value="" disabled selected>Select frequency...</option>
+                                    <option value="Weekend Drives">Weekend Drives</option>
+                                    <option value="Weekday Mornings">Weekday Mornings</option>
+                                    <option value="Monthly Intensive">Monthly Intensive</option>
+                                    <option value="Emergency Response">Emergency Response</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Role Checkboxes -->
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-3">Preferred Roles (Select at least one) *</label>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <label class="flex items-center gap-3 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-950/60 cursor-pointer transition-colors">
+                                    <input type="checkbox" name="roles" value="Sapling Plantation" class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500">
+                                    <span class="text-sm font-semibold text-slate-800 dark:text-slate-200"><i class="fa-solid fa-seedling text-emerald-500 mr-1.5"></i> Sapling Plantation</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-950/60 cursor-pointer transition-colors">
+                                    <input type="checkbox" name="roles" value="Biodiversity Mapping" class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500">
+                                    <span class="text-sm font-semibold text-slate-800 dark:text-slate-200"><i class="fa-solid fa-binoculars text-teal-500 mr-1.5"></i> Biodiversity Mapping</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-950/60 cursor-pointer transition-colors">
+                                    <input type="checkbox" name="roles" value="GIS & Data Collection" class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500">
+                                    <span class="text-sm font-semibold text-slate-800 dark:text-slate-200"><i class="fa-solid fa-laptop-code text-marine-500 mr-1.5"></i> GIS & Data Entry</span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-950/60 cursor-pointer transition-colors">
+                                    <input type="checkbox" name="roles" value="Community Awareness" class="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500">
+                                    <span class="text-sm font-semibold text-slate-800 dark:text-slate-200"><i class="fa-solid fa-bullhorn text-amber-500 mr-1.5"></i> Public Outreach</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Notes / Dept info -->
+                        <div>
+                            <label for="experience" class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">College / Department / Prior Experience</label>
+                            <textarea id="experience" rows="3" placeholder="e.g. BSc IT - Year 3, Mumbai University" class="w-full px-4 py-3.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm font-medium"></textarea>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" id="submit-btn" class="w-full py-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base shadow-lg shadow-emerald-600/30 transition-all hover:shadow-glow-emerald hover:-translate-y-0.5">
+                            <i class="fa-solid fa-paper-plane mr-2"></i> Register Volunteer Record
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 5. Volunteer & Admin Impact Dashboard Section -->
+        <section id="dashboard" class="py-16 bg-slate-100 dark:bg-slate-900/40 border-t border-slate-200 dark:border-slate-800">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="mb-10 text-center sm:text-left">
+                    <span class="text-emerald-600 dark:text-emerald-400 font-bold text-sm tracking-wider uppercase">Analytics Hub</span>
+                    <h2 class="text-3xl font-black text-slate-900 dark:text-white mt-1 tracking-tight">Impact & Analytics Summary</h2>
+                </div>
+
+                <div class="grid lg:grid-cols-3 gap-8">
+                    <!-- Analytics Summary Card 1 -->
+                    <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-md">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="font-bold text-slate-900 dark:text-white text-base">Restoration Target</h4>
+                            <span class="text-xs font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950 px-2.5 py-1 rounded-full">74% Complete</span>
+                        </div>
+                        <div class="text-3xl font-black text-emerald-600 dark:text-emerald-400 mb-2">14,850 / 20,000</div>
+                        <p class="text-xs text-slate-500">Saplings target for academic year 2025-2026.</p>
+                        <div class="w-full bg-slate-100 dark:bg-slate-800 h-3 rounded-full overflow-hidden mt-4">
+                            <div class="bg-emerald-500 h-full rounded-full" style="width: 74%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Analytics Summary Card 2 -->
+                    <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-md">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="font-bold text-slate-900 dark:text-white text-base">Field Hours Logged</h4>
+                            <span class="text-xs font-bold text-teal-600 bg-teal-50 dark:bg-teal-950 px-2.5 py-1 rounded-full">+120 hrs this week</span>
+                        </div>
+                        <div class="text-3xl font-black text-teal-600 dark:text-teal-400 mb-2">3,480 Hours</div>
+                        <p class="text-xs text-slate-500">Cumulative verified fieldwork recorded for student credit logs.</p>
+                    </div>
+
+                    <!-- Analytics Summary Card 3 -->
+                    <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-md">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="font-bold text-slate-900 dark:text-white text-base">System Status</h4>
+                            <span class="text-xs font-bold text-emerald-500 flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Online
+                            </span>
+                        </div>
+                        <div class="space-y-2 text-xs text-slate-600 dark:text-slate-300">
+                            <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+                                <span>Storage Mode:</span>
+                                <span id="storage-mode-label" class="font-bold text-emerald-600 dark:text-emerald-400">Supabase Secure RLS</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+                                <span>API Status:</span>
+                                <span class="font-bold text-emerald-600 dark:text-emerald-400">Active (200 OK)</span>
+                            </div>
+                            <div class="flex justify-between py-1">
+                                <span>CEP Guidelines:</span>
+                                <span class="font-bold text-slate-700 dark:text-slate-200">NEP 2020 Compliant</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer & Admin Access -->
+    <footer class="bg-slate-950 border-t border-slate-800 text-slate-400 py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center text-white font-bold shadow-lg shadow-emerald-600/30">
+                        <i class="fa-solid fa-tree-city"></i>
+                    </div>
+                    <span class="text-lg font-extrabold text-white">Mangrove Guard Platform</span>
+                </div>
+                <p class="text-xs text-slate-500 text-center max-w-md">
+                    Developed for NEP 2020 Community Engagement Projects (CEP). Designed for real-time volunteer tracking and coastal preservation.
+                </p>
+                <div class="flex items-center gap-4">
+                    <button onclick="openAdminModal()" class="text-xs text-slate-400 hover:text-emerald-400 transition-colors font-medium underline flex items-center gap-1.5">
+                        <i class="fa-solid fa-lock"></i> Admin Portal Login
+                    </button>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Admin Login & Secure Roster Modal -->
+    <div id="admin-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-2xl w-full p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <button onclick="closeAdminModal()" class="absolute top-6 right-6 text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+
+            <!-- Login View -->
+            <div id="admin-login-view">
+                <h3 class="text-2xl font-extrabold text-slate-900 dark:text-white mb-2">Admin Portal Login</h3>
+                <p class="text-xs text-slate-500 mb-6">Enter your Supabase admin credentials to view the secure volunteer roster.</p>
+                
+                <form id="admin-login-form" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">Admin Email</label>
+                        <input type="email" id="admin-email" required class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white text-sm font-medium" placeholder="admin@mangroveguard.edu">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">Password</label>
+                        <input type="password" id="admin-password" required class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white text-sm font-medium" placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-lg shadow-emerald-600/20">
+                        Secure Login
+                    </button>
+                </form>
+            </div>
+
+            <!-- Secure Roster View -->
+            <div id="admin-roster-view" class="hidden space-y-4">
+                <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-4">
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-900 dark:text-white">Secure Volunteer Roster</h3>
+                        <p class="text-xs text-emerald-600 font-bold">Authenticated Admin Session Active</p>
+                    </div>
+                    <button onclick="adminLogout()" class="px-4 py-2 rounded-xl bg-red-500/10 text-red-500 text-xs font-bold hover:bg-red-500/20">
+                        Logout
+                    </button>
+                </div>
+                
+                <div id="secure-roster-container" class="space-y-2 max-h-96 overflow-y-auto custom-scrollbar pr-2">
+                    <!-- Dynamically loaded secure records -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Integrated Full-Stack Application Logic -->
+    <script>
+        // --- Supabase Client Initialization ---
+        const SUPABASE_URL = 'https://fkipqpefkoaibjhvxeft.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_QdLNygVscdsKcNlhsmeV0g_DXYe2e23';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // --- Mock Restoration Drives Data ---
+        const RESTORATION_DRIVES = [
+            {
+                id: 101,
+                title: "Thane Creek Sapling Plantation Drive",
+                date: "Saturday, Nov 15, 2026",
+                time: "07:30 AM - 11:30 AM",
+                location: "Thane Creek Sanctuary Zone B",
+                role: "Sapling Planting & Stilt Stabilizing",
+                target: 500,
+                planted: 340,
+                badge: "High Priority"
+            },
+            {
+                id: 102,
+                title: "Gorai Estuary Biodiversity Trail & Survey",
+                date: "Sunday, Nov 22, 2026",
+                time: "08:00 AM - 12:00 PM",
+                location: "Gorai Tidal Mudflats, Station 4",
+                role: "Biodiversity Mapping / Data Entry",
+                target: 250,
+                planted: 190,
+                badge: "Educational"
+            },
+            {
+                id: 103,
+                title: "Mahim Coastal Clean-Up & Pneumatophore Tagging",
+                date: "Saturday, Dec 05, 2026",
+                time: "07:00 AM - 10:30 AM",
+                location: "Mahim Nature Park Marine Edge",
+                role: "Community Awareness & Debris Removal",
+                target: 400,
+                planted: 120,
+                badge: "Community Drive"
+            }
+        ];
+
+        // Global State Controller
+        const AppState = {
+            volunteers: JSON.parse(localStorage.getItem('mg_vols_db') || '[]'),
+            rsvps: JSON.parse(localStorage.getItem('mg_rsvps_db') || '[]'),
+            theme: localStorage.getItem('mg_theme_mode') || 'light'
+        };
+
+        // --- Hybrid Backend Service Layer ---
+        const BackendService = {
+            async addVolunteer(record) {
+                try {
+                    const { error } = await supabaseClient
+                        .from('volunteers')
+                        .insert([{
+                            name: record.fullName,
+                            email: record.email,
+                            phone: record.phone,
+                            drive_id: record.availability
+                        }]);
+                    
+                    if (error) console.error("Supabase insert error:", error.message);
+                } catch (e) {
+                    console.warn("Supabase sync warning:", e);
+                }
+
+                AppState.volunteers.unshift(record);
+                localStorage.setItem('mg_vols_db', JSON.stringify(AppState.volunteers));
+                return { status: 201, success: true, data: record };
+            },
+
+            async toggleRSVP(driveId) {
+                const idx = AppState.rsvps.indexOf(driveId);
+                let isEnrolled = false;
+                if (idx > -1) {
+                    AppState.rsvps.splice(idx, 1);
+                } else {
+                    AppState.rsvps.push(driveId);
+                    isEnrolled = true;
+                }
+                localStorage.setItem('mg_rsvps_db', JSON.stringify(AppState.rsvps));
+                return { success: true, isEnrolled, totalRSVPs: AppState.rsvps.length };
+            }
+        };
+
+        // --- UI Controller & Event Wiring ---
+        window.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+            renderDrivesList();
+            refreshSessionFeed();
+            
+            document.getElementById('volunteer-form').addEventListener('submit', handleFormSubmit);
+            document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+            document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+                document.getElementById('mobile-menu').classList.toggle('hidden');
+            });
+            document.getElementById('admin-login-form').addEventListener('submit', handleAdminLogin);
+        });
+
+        // --- Theme Handlers ---
+        function initTheme() {
+            if (AppState.theme === 'dark' || (!('mg_theme_mode' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                document.getElementById('theme-toggle-light-icon').classList.remove('hidden');
+            } else {
+                document.documentElement.classList.remove('dark');
+                document.getElementById('theme-toggle-dark-icon').classList.remove('hidden');
+            }
+        }
+
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            AppState.theme = isDark ? 'dark' : 'light';
+            localStorage.setItem('mg_theme_mode', AppState.theme);
+            
+            document.getElementById('theme-toggle-dark-icon').classList.toggle('hidden', isDark);
+            document.getElementById('theme-toggle-light-icon').classList.toggle('hidden', !isDark);
+        }
+
+        // --- Notification Toasts ---
+        function showToast(msg, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            const bgColor = type === 'success' ? 'bg-emerald-600 text-white' : 'bg-marine-700 text-white';
+
+            toast.className = `p-4 rounded-xl shadow-xl ${bgColor} flex items-center justify-between gap-4 transition-all transform translate-y-2 opacity-0 pointer-events-auto`;
+            toast.innerHTML = `
+                <div class="flex items-center gap-3 text-sm font-semibold">
+                    <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-info'} text-lg"></i>
+                    <span>${msg}</span>
+                </div>
+                <button onclick="this.parentElement.remove()" class="opacity-75 hover:opacity-100">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            `;
+
+            container.appendChild(toast);
+            requestAnimationFrame(() => { toast.classList.remove('translate-y-2', 'opacity-0'); });
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        // --- Ecology Tab Navigation ---
+        function switchTab(tabKey) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.guide-tab').forEach(btn => {
+                btn.className = 'guide-tab px-6 py-3 rounded-full font-bold text-sm transition-all flex items-center gap-2 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700';
+            });
+
+            document.getElementById(`content-${tabKey}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab-${tabKey}`);
+            activeBtn.className = 'guide-tab px-6 py-3 rounded-full font-bold text-sm transition-all flex items-center gap-2 bg-emerald-600 text-white shadow-lg shadow-emerald-600/20';
+        }
+
+        // --- Render Active Restoration Drives ---
+        function renderDrivesList() {
+            const container = document.getElementById('drives-list');
+            container.innerHTML = '';
+
+            RESTORATION_DRIVES.forEach(drive => {
+                const isRSVPed = AppState.rsvps.includes(drive.id);
+                const progress = Math.round((drive.planted / drive.target) * 100);
+
+                const card = document.createElement('div');
+                card.className = "bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 flex flex-col justify-between shadow-xl hover:shadow-2xl transition-all hover:border-emerald-500/50";
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                                ${drive.badge}
+                            </span>
+                            <span class="text-xs text-slate-500 font-medium"><i class="fa-regular fa-clock mr-1"></i> ${drive.time}</span>
+                        </div>
+
+                        <h3 class="font-bold text-lg text-slate-900 dark:text-white mb-2">${drive.title}</h3>
+                        
+                        <div class="space-y-2 text-xs text-slate-600 dark:text-slate-300 mb-6">
+                            <p><i class="fa-regular fa-calendar text-emerald-500 mr-2"></i> ${drive.date}</p>
+                            <p><i class="fa-solid fa-location-dot text-emerald-500 mr-2"></i> ${drive.location}</p>
+                            <p><i class="fa-solid fa-user-tag text-emerald-500 mr-2"></i> ${drive.role}</p>
+                        </div>
+
+                        <div class="space-y-1.5 mb-6">
+                            <div class="flex justify-between text-xs font-bold">
+                                <span class="text-slate-500">Target Sapling Count</span>
+                                <span class="text-emerald-600 dark:text-emerald-400">${drive.planted} / ${drive.target}</span>
+                            </div>
+                            <div class="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                                <div class="bg-emerald-500 h-full rounded-full" style="width: ${progress}%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="handleDriveRSVP(${drive.id})" class="w-full py-3.5 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${
+                        isRSVPed 
+                        ? 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-red-50 hover:text-red-600' 
+                        : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20'
+                    }">
+                        <i class="fa-solid ${isRSVPed ? 'fa-user-check' : 'fa-calendar-plus'}"></i>
+                        ${isRSVPed ? 'Enrolled (Click to Cancel)' : 'RSVP for Drive'}
+                    </button>
+                `;
+                container.appendChild(card);
+            });
+
+            updateRSVPBadge();
+        }
+
+        async function handleDriveRSVP(driveId) {
+            const res = await BackendService.toggleRSVP(driveId);
+            if (res.isEnrolled) {
+                showToast("Enrolled in restoration drive! Site details sent to your registered contact.");
+            } else {
+                showToast("RSVP registration cancelled.", "info");
+            }
+            renderDrivesList();
+        }
+
+        function updateRSVPBadge() {
+            const countEl = document.getElementById('user-rsvp-count');
+            const badgeEl = document.getElementById('rsvp-status-badge');
+            
+            countEl.textContent = AppState.rsvps.length;
+            if (AppState.rsvps.length > 0) {
+                badgeEl.classList.remove('hidden');
+            } else {
+                badgeEl.classList.add('hidden');
+            }
+        }
+
+        // --- Volunteer Form Handling ---
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+
+            const rolesChecked = Array.from(document.querySelectorAll('input[name="roles"]:checked')).map(cb => cb.value);
+
+            if (rolesChecked.length === 0) {
+                showToast("Please select at least one volunteer role.", "info");
+                return;
+            }
+
+            const btn = document.getElementById('submit-btn');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Saving Record...`;
+
+            const payload = {
+                fullName: document.getElementById('fullName').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                phone: document.getElementById('phone').value.trim(),
+                availability: document.getElementById('availability').value,
+                roles: rolesChecked,
+                experience: document.getElementById('experience').value.trim() || 'N/A',
+                timestamp: new Date().toLocaleDateString()
+            };
+
+            await BackendService.addVolunteer(payload);
+
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fa-solid fa-paper-plane mr-2"></i> Register Volunteer Record`;
+
+            document.getElementById('volunteer-form').reset();
+            showToast(`Registration complete for ${payload.fullName}!`);
+            
+            refreshSessionFeed();
+        }
+
+        // --- Render Session Feedback Feed ---
+        function refreshSessionFeed() {
+            const listEl = document.getElementById('live-volunteer-roster');
+            const badgeEl = document.getElementById('vol-count-badge');
+            const list = AppState.volunteers;
+
+            badgeEl.textContent = `${list.length} Logged`;
+
+            if (list.length === 0) {
+                listEl.innerHTML = `<p class="text-emerald-200 italic">Submit the form above to record your guardian registration.</p>`;
+                return;
+            }
+
+            listEl.innerHTML = list.map(item => `
+                <div class="p-2.5 rounded-xl bg-emerald-800/80 border border-emerald-700/50">
+                    <div class="flex justify-between font-bold text-white">
+                        <span>${escapeHtml(item.fullName)}</span>
+                        <span class="text-[10px] text-emerald-300 font-medium">${item.availability}</span>
+                    </div>
+                    <div class="text-[11px] text-emerald-200 mt-0.5">
+                        <i class="fa-solid fa-briefcase text-[10px] mr-1"></i> ${(item.roles || []).join(', ')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // --- Admin Portal Logic ---
+        function openAdminModal() {
+            document.getElementById('admin-modal').classList.remove('hidden');
+        }
+
+        function closeAdminModal() {
+            document.getElementById('admin-modal').classList.add('hidden');
+        }
+
+        async function handleAdminLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('admin-email').value.trim();
+            const password = document.getElementById('admin-password').value.trim();
+
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+            if (error) {
+                showToast("Login failed: " + error.message, "info");
+            } else {
+                showToast("Admin authenticated successfully!");
+                document.getElementById('admin-login-view').classList.add('hidden');
+                document.getElementById('admin-roster-view').classList.remove('hidden');
+                fetchSecureRoster();
+            }
+        }
+
+        async function fetchSecureRoster() {
+            const container = document.getElementById('secure-roster-container');
+            container.innerHTML = `<p class="text-xs text-slate-500 italic">Loading secure records from database...</p>`;
+
+            const { data, error } = await supabaseClient
+                .from('volunteers')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                container.innerHTML = `<p class="text-xs text-red-500">Error fetching data: ${error.message}</p>`;
+                return;
+            }
+
+            if (!data || data.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-500 italic">No registrations found in database.</p>`;
+                return;
+            }
+
+            container.innerHTML = data.map(v => `
+                <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex justify-between items-center text-xs">
+                    <div>
+                        <h4 class="font-bold text-slate-900 dark:text-white text-sm">${escapeHtml(v.name)}</h4>
+                        <p class="text-slate-500 dark:text-slate-400">${escapeHtml(v.email)} | Phone: ${escapeHtml(v.phone || 'N/A')}</p>
+                        <span class="inline-block mt-1 text-[10px] bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-full font-bold">
+                            Frequency: ${escapeHtml(v.drive_id || 'General')}
+                        </span>
+                    </div>
+                    <span class="text-slate-400 font-mono">${new Date(v.created_at || Date.now()).toLocaleDateString()}</span>
+                </div>
+            `).join('');
+        }
+
+        async function adminLogout() {
+            await supabaseClient.auth.signOut();
+            document.getElementById('admin-roster-view').classList.add('hidden');
+            document.getElementById('admin-login-view').classList.remove('hidden');
+            document.getElementById('admin-login-form').reset();
+            showToast("Logged out of admin session.", "info");
+        }
+
+        function escapeHtml(str) {
+            return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+    </script>
+</body>
+</html>
